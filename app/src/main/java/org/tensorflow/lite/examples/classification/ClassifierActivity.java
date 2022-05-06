@@ -27,6 +27,10 @@ import android.util.Log;
 import android.util.Size;
 import android.util.TypedValue;
 import android.widget.Toast;
+
+import com.chaquo.python.Kwarg;
+import com.chaquo.python.PyObject;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -160,6 +164,12 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
                   //Log.v("Decode", Integer.toString(data.length));
                   Log.i("Decode", Arrays.toString(data));
                   //LOGGER.v("Decode: %f", data[0]);
+
+                  // Call Python Bch Decode
+                  PyObject obj1 = py.getModule("BchDecode").callAttr("BchDecode",new Kwarg("secretList", data));
+                  String result = obj1.toJava(String.class);
+                  Log.i("result", result);
+
 
                   runOnUiThread(
                           new Runnable() {

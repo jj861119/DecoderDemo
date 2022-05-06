@@ -51,6 +51,10 @@ import androidx.annotation.UiThread;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import java.nio.ByteBuffer;
 import java.util.List;
+import com.chaquo.python.Kwarg;
+import com.chaquo.python.PyObject;
+import com.chaquo.python.android.AndroidPlatform;
+import com.chaquo.python.Python;
 
 import org.tensorflow.lite.examples.classification.customview.MyView;
 import org.tensorflow.lite.examples.classification.env.ImageUtils;
@@ -100,10 +104,17 @@ public abstract class CameraActivity extends AppCompatActivity
   private Spinner deviceSpinner;
   private TextView threadsTextView;
   private MyView myView;
+  protected Python py;
 
   private Model model = Model.QUANTIZED_EFFICIENTNET;
   private Device device = Device.CPU;
   private int numThreads = -1;
+
+  void initPython(){
+    if (! Python.isStarted()) {
+      Python.start(new AndroidPlatform(this));
+    }
+  }
 
   @Override
   protected void onCreate(final Bundle savedInstanceState) {
@@ -199,6 +210,8 @@ public abstract class CameraActivity extends AppCompatActivity
     //model = Model.valueOf(modelSpinner.getSelectedItem().toString().toUpperCase());
     //device = Device.valueOf(deviceSpinner.getSelectedItem().toString());
     //numThreads = Integer.parseInt(threadsTextView.getText().toString().trim());
+    initPython();
+    py = Python.getInstance();
   }
 
   protected int[] getRgbBytes() {
