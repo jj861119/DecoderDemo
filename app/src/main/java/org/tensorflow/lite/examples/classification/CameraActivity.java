@@ -51,10 +51,10 @@ import androidx.annotation.UiThread;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import java.nio.ByteBuffer;
 import java.util.List;
-import com.chaquo.python.Kwarg;
-import com.chaquo.python.PyObject;
-import com.chaquo.python.android.AndroidPlatform;
-import com.chaquo.python.Python;
+//import com.chaquo.python.Kwarg;
+//import com.chaquo.python.PyObject;
+//import com.chaquo.python.android.AndroidPlatform;
+//import com.chaquo.python.Python;
 
 import org.tensorflow.lite.examples.classification.customview.MyView;
 import org.tensorflow.lite.examples.classification.env.ImageUtils;
@@ -104,17 +104,17 @@ public abstract class CameraActivity extends AppCompatActivity
   private Spinner deviceSpinner;
   private TextView threadsTextView;
   private MyView myView;
-  protected Python py;
+  //protected Python py;
 
   private Model model = Model.QUANTIZED_EFFICIENTNET;
   private Device device = Device.CPU;
   private int numThreads = -1;
 
-  void initPython(){
-    if (! Python.isStarted()) {
-      Python.start(new AndroidPlatform(this));
-    }
-  }
+//  void initPython(){
+//    if (! Python.isStarted()) {
+//      Python.start(new AndroidPlatform(this));
+//    }
+//  }
 
   @Override
   protected void onCreate(final Bundle savedInstanceState) {
@@ -210,8 +210,8 @@ public abstract class CameraActivity extends AppCompatActivity
     //model = Model.valueOf(modelSpinner.getSelectedItem().toString().toUpperCase());
     //device = Device.valueOf(deviceSpinner.getSelectedItem().toString());
     //numThreads = Integer.parseInt(threadsTextView.getText().toString().trim());
-    initPython();
-    py = Python.getInstance();
+    //initPython();
+    //py = Python.getInstance();
   }
 
   protected int[] getRgbBytes() {
@@ -540,15 +540,14 @@ public abstract class CameraActivity extends AppCompatActivity
   }
 
   @UiThread
-  protected void showResultsInBottomSheet(List<Recognition> results) {
-    if (results != null && results.size() >= 3) {
-      Recognition recognition = results.get(0);
-      if (recognition != null) {
-        if (recognition.getTitle() != null) recognitionTextView.setText(recognition.getTitle());
-        if (recognition.getConfidence() != null)
-          recognitionValueTextView.setText(
-                  String.format("%.2f", (100 * recognition.getConfidence())) + "%");
-      }
+  protected void showResultsInBottomSheet(String result) {
+//    if (results != null && results.size() >= 3) {
+//      Recognition recognition = results.get(0);
+//      if (recognition != null) {
+//        if (recognition.getTitle() != null) recognitionTextView.setText(recognition.getTitle());
+//        if (recognition.getConfidence() != null)
+          recognitionValueTextView.setText(result);
+      //}
 
 //      Recognition recognition1 = results.get(1);
 //      if (recognition1 != null) {
@@ -565,7 +564,7 @@ public abstract class CameraActivity extends AppCompatActivity
 //          recognition2ValueTextView.setText(
 //                  String.format("%.2f", (100 * recognition2.getConfidence())) + "%");
 //      }
-    }
+    //}
   }
 
 //  protected void showFrameInfo(String frameInfo) {

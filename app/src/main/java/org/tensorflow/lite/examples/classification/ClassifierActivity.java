@@ -28,8 +28,8 @@ import android.util.Size;
 import android.util.TypedValue;
 import android.widget.Toast;
 
-import com.chaquo.python.Kwarg;
-import com.chaquo.python.PyObject;
+//import com.chaquo.python.Kwarg;
+//import com.chaquo.python.PyObject;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -53,13 +53,20 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
   private Bitmap rgbFrameBitmap = null;
   private long lastProcessingTimeMs;
   private Integer sensorOrientation;
-  private Classifier classifier;
+  //private Classifier classifier;
   private BorderedText borderedText;
   private org.tensorflow.lite.examples.classification.ml.Model myModel;
   /** Input image size of the model along x axis. */
-  private int imageSizeX;
+  //private int imageSizeX;
   /** Input image size of the model along y axis. */
-  private int imageSizeY;
+  //private int imageSizeY;
+  private String result;
+
+  public native String BCHDecode(byte[] data,byte[] ecc);
+
+  static {
+    System.loadLibrary("bch");
+  }
 
   @Override
   protected int getLayoutId() {
@@ -80,10 +87,10 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
     borderedText.setTypeface(Typeface.MONOSPACE);
 
     recreateClassifier(getModel(), getDevice(), getNumThreads());
-    if (classifier == null) {
-      LOGGER.e("No classifier on preview!");
-      return;
-    }
+//    if (classifier == null) {
+//      LOGGER.e("No classifier on preview!");
+//      return;
+//    }
     if (myModel == null) {
       LOGGER.e("No myModel on preview!");
       return;
@@ -108,12 +115,12 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
             new Runnable() {
               @Override
               public void run() {
-                if (classifier != null) {
-                  final long startTime = SystemClock.uptimeMillis();
-                  final List<Classifier.Recognition> results =
-                          classifier.recognizeImage(rgbFrameBitmap, sensorOrientation);
-                  lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
-                  LOGGER.v("Detect: %s", results);
+                if (myModel != null) {
+                  //final long startTime = SystemClock.uptimeMillis();
+                  //final List<Classifier.Recognition> results =
+                          //classifier.recognizeImage(rgbFrameBitmap, sensorOrientation);
+                  //lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
+                  //LOGGER.v("Detect: %s", results);
 
                   Matrix matrix=new Matrix();
                   matrix.postRotate(90);
@@ -158,24 +165,77 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
                   inputFeature0.loadBuffer(input);
 
                   // Runs model inference and gets result.
+                  final long startTime = SystemClock.uptimeMillis();
                   org.tensorflow.lite.examples.classification.ml.Model.Outputs outputs = myModel.process(inputFeature0);
+                  lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
+
                   TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
                   float[] data=outputFeature0.getFloatArray();
+                  float[] testGT={0,1,0,0,1,0,0,0,0,1,1,0,0,1,0,1,0,1,1,0,1,1,0,0,0,1,1,0,1,1,0,0,0,1,1,0,1,1,1,1,0,0,1,0,0,0,0,
+                          0,0,0,1,0,0,0,0,0,1,1,0,0,0,1,0,1,0,0,0,1,0,0,0,0,1,1,1,1,1,0,1,1,1,1,1,0,0,0,1,0,1,1,1,0,0,0,0,0};
+                  //int[] data_int = new int[data.length];
+                  byte[] data_byte= new byte[7];
+                  byte[] ecc_byte= new byte[5];
+                  int data_length = 56;
+                  int ecc_length = 40;
+                  for (int i = 0 ; i < data_length; i+=8)
+                  {
+                    String tmp="";
+                    for(int j =i;j<i+8;j++)
+                    {
+                      tmp+= Integer.toString((int)data[j]);
+                    }
+                    //Log.i("Decode", tmp);
+                    int tmpInt = Integer.parseInt(tmp,2);
+                    data_byte[i/8]=(byte) tmpInt;
+                  }
+                  for (int i = 56 ; i < data_length+ecc_length-1; i+=8)
+                  {
+                    String tmp="";
+                    for(int j =i;j<i+8;j++)
+                    {
+                      tmp+= Integer.toString((int)data[j]);
+                    }
+                    //Log.i("Decode", tmp);
+                    int tmpInt = Integer.parseInt(tmp,2);
+                    //ecc_byte[i/8]=Byte.parseByte(tmp, 2);
+                    ecc_byte[(i-56)/8]=(byte) tmpInt;
+                    //String s1 = String.format("%8s", Integer.toBinaryString((byte) tmpInt & 0xFF)).replace(' ', '0');
+                    //Log.i("Decode", s1);
+                  }
+                  //Log.i("Decode", Float.toString(testGT[0]));
+                    //Log.i("Decode", Arrays.toString(data_byte));
+                    //Log.i("Decode", Arrays.toString(ecc_byte));
+                    //Log.i("Decode", Arrays.toString(data));
+
+
+                  result = BCHDecode(data_byte,ecc_byte);
+                  //Log.i("Decode", Arrays.toString(data_byte));
+                  //Log.i("Decode", Arrays.toString(ecc_byte));
                   //Log.v("Decode", Integer.toString(data.length));
-                  Log.i("Decode", Arrays.toString(data));
+                  if(result.length()!=0)
+                  {
+                    Log.i("JNI", result);
+                    //Log.i("JNI", String.valueOf(result.length()));
+                  }
+                  else
+                  {
+                    result="Failed to decode";
+                    Log.i("JNI", "Failed to decode");
+                  }
                   //LOGGER.v("Decode: %f", data[0]);
 
                   // Call Python Bch Decode
-                  PyObject obj1 = py.getModule("BchDecode").callAttr("BchDecode",new Kwarg("secretList", data));
-                  String result = obj1.toJava(String.class);
-                  Log.i("result", result);
+                  //PyObject obj1 = py.getModule("BchDecode").callAttr("BchDecode",new Kwarg("secretList", data));
+                  //String result = obj1.toJava(String.class);
+                  //Log.i("result", result);
 
 
                   runOnUiThread(
                           new Runnable() {
                             @Override
                             public void run() {
-                              showResultsInBottomSheet(results);
+                              showResultsInBottomSheet(result);
                               //showFrameInfo(previewWidth + "x" + previewHeight);
                               //showCropInfo(imageSizeX + "x" + imageSizeY);
                               //showCameraResolution(cropSize + "x" + cropSize);
@@ -202,38 +262,38 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
   }
 
   private void recreateClassifier(Model model, Device device, int numThreads) {
-    if (classifier != null) {
-      LOGGER.d("Closing classifier.");
-      classifier.close();
-      classifier = null;
-    }
+//    if (classifier != null) {
+//      LOGGER.d("Closing classifier.");
+//      classifier.close();
+//      classifier = null;
+//    }
     if (myModel != null) {
       LOGGER.d("Closing myModel.");
       myModel.close();
       myModel = null;
     }
 
-    if (device == Device.GPU
-            && (model == Model.QUANTIZED_MOBILENET || model == Model.QUANTIZED_EFFICIENTNET)) {
-      LOGGER.d("Not creating classifier: GPU doesn't support quantized models.");
-      runOnUiThread(
-              () -> {
-                Toast.makeText(this, R.string.tfe_ic_gpu_quant_error, Toast.LENGTH_LONG).show();
-              });
-      return;
-    }
-    try {
-      LOGGER.d(
-              "Creating classifier (model=%s, device=%s, numThreads=%d)", model, device, numThreads);
-      classifier = Classifier.create(this, model, device, numThreads);
-    } catch (IOException | IllegalArgumentException e) {
-      LOGGER.e(e, "Failed to create classifier.");
-      runOnUiThread(
-              () -> {
-                Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-              });
-      return;
-    }
+//    if (device == Device.GPU
+//            && (model == Model.QUANTIZED_MOBILENET || model == Model.QUANTIZED_EFFICIENTNET)) {
+//      LOGGER.d("Not creating classifier: GPU doesn't support quantized models.");
+//      runOnUiThread(
+//              () -> {
+//                Toast.makeText(this, R.string.tfe_ic_gpu_quant_error, Toast.LENGTH_LONG).show();
+//              });
+//      return;
+//    }
+//    try {
+//      LOGGER.d(
+//              "Creating classifier (model=%s, device=%s, numThreads=%d)", model, device, numThreads);
+//      classifier = Classifier.create(this, model, device, numThreads);
+//    } catch (IOException | IllegalArgumentException e) {
+//      LOGGER.e(e, "Failed to create classifier.");
+//      runOnUiThread(
+//              () -> {
+//                Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+//              });
+//      return;
+//    }
 
     try {
       LOGGER.d(
@@ -249,7 +309,7 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
     }
 
     // Updates the input image size.
-    imageSizeX = classifier.getImageSizeX();
-    imageSizeY = classifier.getImageSizeY();
+//    imageSizeX = classifier.getImageSizeX();
+//    imageSizeY = classifier.getImageSizeY();
   }
 }

@@ -1,7 +1,7 @@
 
 
 apply plugin: 'com.android.application'
-apply plugin: 'com.chaquo.python'
+//apply plugin: 'com.chaquo.python'
 
 
 
@@ -19,16 +19,30 @@ android {
             abiFilters "armeabi-v7a", "x86"
         }
 
-        python{
-            buildPython "D:\\anaconda3\\envs\\tensorflow2\\python.exe"
 
-            pip{
-                install "numpy"
-                //install "bchlib"
-                //install "git+https://github.com/jkent/python-bchlib@6530660c79e4dd40b68ad18900afeab4b7151dd5"
-            }
+
+//        python{
+//            buildPython "D:\\anaconda3\\envs\\tensorflow2\\python.exe"
+//
+//            pip{
+//                install "numpy"
+//                //install "bchlib"
+//                //install "git+https://github.com/jkent/python-bchlib@6530660c79e4dd40b68ad18900afeab4b7151dd5"
+//            }
+//        }
+    }
+//    externalNativeBuild {
+//        cmake {
+//            path "src/main/C/CMakeLists.txt"
+//            version "3.10.2"
+//        }
+//    }
+    sourceSets{
+        main{
+            jniLibs.srcDirs = ['libs']
         }
     }
+
     buildTypes {
         release {
             minifyEnabled false
