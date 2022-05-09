@@ -83,6 +83,9 @@ public class MyView extends View {
         Paint paint = new Paint();
         paint.setColor(0xFFFF6600);
         paint.setStyle(Paint.Style.STROKE);
+        Log.v("myView", "myView");
+        Log.v("ratioWidth", String.valueOf(ratioWidth));
+        Log.v("ratioHeight", String.valueOf(ratioHeight));
 
         if(ratioWidth!=0 && ratioHeight!=0)
         {
@@ -103,14 +106,14 @@ public class MyView extends View {
             int boxHeight = boxWidth*3/2;
 //        Log.v("myView X", String.valueOf(this.getX()));
 //        Log.v("myView Y", String.valueOf(this.getY()));
-            Log.v("textureratioWidth", String.valueOf(ratioWidth));
-            Log.v("textureratioHeight", String.valueOf(ratioHeight));
-            Log.v("textureW", String.valueOf(textureW));
-            Log.v("textureH", String.valueOf(textureH));
-//        Log.v("L", String.valueOf(centreX-width));
-//        Log.v("T", String.valueOf(centreX-height));
-//        Log.v("R", String.valueOf(centreX+width));
-//        Log.v("B", String.valueOf(centreX+height));
+//            Log.v("textureratioWidth", String.valueOf(ratioWidth));
+//            Log.v("textureratioHeight", String.valueOf(ratioHeight));
+//            Log.v("textureW", String.valueOf(textureW));
+//            Log.v("textureH", String.valueOf(textureH));
+            Log.v("myView L", String.valueOf(centreX-boxWidth));
+            Log.v("myView T", String.valueOf(centreX-boxHeight));
+            Log.v("myView R", String.valueOf(centreX+boxWidth));
+            Log.v("myView B", String.valueOf(centreX+boxHeight));
 
             canvas.drawRect(centreX-boxWidth,centreY-boxHeight,centreX+boxWidth,centreY+boxHeight,paint);
             canvas.drawCircle(centreX,centreY,2,paint);

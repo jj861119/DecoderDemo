@@ -23,6 +23,8 @@
 #include <jni.h>
 #include <stdio.h>
 #include "include/bch.h"
+#include <Android/Log.h>
+#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG,"bchlib" ,__VA_ARGS__)
 
 typedef struct {
 	struct bch_control *bch;
@@ -31,6 +33,7 @@ typedef struct {
 
 static int BCH_init(BCHObject *self);
 static int BCH_decode_inplace(uint8_t *data,uint8_t *ecc);
+static jstring unsigchar2jstring(JNIEnv *e, unsigned char* pChar);
 
 jstring
 Java_org_tensorflow_lite_examples_classification_ClassifierActivity_BCHDecode(JNIEnv *env,
@@ -46,24 +49,62 @@ Java_org_tensorflow_lite_examples_classification_ClassifierActivity_BCHDecode(JN
 
 
     int bitflips = BCH_decode_inplace(data_char, ecc_char);
-	char result[8] = "";
+    //char* result = (char *)malloc( 8 * sizeof(char));
+	unsigned char result[8]="";
+	result[7]='\0';
+
     
 	if(bitflips!=-1)
 	{
 		for(int i =0;i<7;i++)
 		{
-			result[i]=(char)data_char[i];
+			result[i]=(unsigned char)data_char[i];
+            //LOGD("%d\n", (int)data_char[i]);
 		}
 	}
-	printf("%d\n", bitflips);
 
-	try:
-		return (*env)->NewStringUTF(env, result);    
-	except:
-    	return (*env)->NewStringUTF(env, "");  
+	//jbyteArray newByteArray = (*env)->NewByteArray(env,8);
+    //把jint指標中的元素設定到jintArray物件中
+    //(*env)->SetByteArrayRegion(env,newByteArray, 0, 8, data_char);
+	//printf("%d\n", bitflips);
+	jstring result_s;
+	result_s = unsigchar2jstring(env, result);
+    LOGD("Result %s\n", result);
+
+	//const char* errorKind = NULL;
+    //uint8_t utf8 = checkUtfBytes2(result, &errorKind);
+    //if (errorKind != NULL && utf8 ==0) {
+    //    result_s = (*env)->NewStringUTF(env, result);
+    //}
+    //else
+    //{
+    //    result_s = (*env)->NewStringUTF(env, "");
+    //}
+
+	//try:
+	    //result_s = (*env)->NewStringUTF(env, result);
+	//except:
+    	//result_s = (*env)->NewStringUTF(env, "");
+
+	return result_s;
 	//return  bitflips;
 }
 
+static jstring unsigchar2jstring(JNIEnv *e, unsigned char* pChar){
+    unsigned char *newresult = pChar;
+    //定义java String类 clsstring
+    jclass clsstring = (*e)->FindClass(e,"java/lang/String");
+    //获取String(byte[],String)的构造器,用于将本地byte[]数组转换为一个新String
+    jmethodID mid = (*e)->GetMethodID(e,clsstring , "<init>" , "([BLjava/lang/String;)V");
+    // 设置String, 保存语言类型,用于byte数组转换至String时的参数
+    jstring encoding = (*e)->NewStringUTF(e,"utf-8");
+    //建立byte数组
+    jbyteArray bytes = (*e)->NewByteArray(e,strlen((char*)newresult));
+    //将char* 转换为byte数组
+    (*e)->SetByteArrayRegion(e,bytes, 0, strlen((char*)newresult), (jbyte*) newresult);
+    //将byte数组转换为java String,并输出
+    return (jstring) (*e)->NewObject(e,clsstring, mid, bytes, encoding);
+}
 
 static int
 BCH_init(BCHObject *self)

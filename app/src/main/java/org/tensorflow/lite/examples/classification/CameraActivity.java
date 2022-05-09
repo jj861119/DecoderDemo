@@ -35,6 +35,8 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Trace;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
 import android.view.View;
@@ -238,6 +240,7 @@ public abstract class CameraActivity extends AppCompatActivity
     try {
       // Initialize the storage bitmaps once when the resolution is known.
       if (rgbBytes == null) {
+        Log.v("setAspectRatio", "setAspectRatio");
         Camera.Size previewSize = camera.getParameters().getPreviewSize();
         previewHeight = previewSize.height;
         previewWidth = previewSize.width;
@@ -489,7 +492,7 @@ public abstract class CameraActivity extends AppCompatActivity
                         public void onPreviewSizeChosen(final Size size, final int rotation) {
                           previewHeight = size.getHeight();
                           previewWidth = size.getWidth();
-                          //myView.setAspectRatio(previewWidth, previewHeight);
+                          myView.setAspectRatio(previewWidth, previewHeight);
                           CameraActivity.this.onPreviewSizeChosen(size, rotation);
                         }
                       },

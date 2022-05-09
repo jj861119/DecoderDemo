@@ -32,6 +32,7 @@ import android.widget.Toast;
 //import com.chaquo.python.PyObject;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -48,7 +49,7 @@ import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
 public class ClassifierActivity extends CameraActivity implements OnImageAvailableListener {
   private static final Logger LOGGER = new Logger();
-  private static final Size DESIRED_PREVIEW_SIZE = new Size(1280, 720);
+  private static final Size DESIRED_PREVIEW_SIZE = new Size(1920, 1080);
   private static final float TEXT_SIZE_DIP = 10;
   private Bitmap rgbFrameBitmap = null;
   private long lastProcessingTimeMs;
@@ -61,6 +62,7 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
   /** Input image size of the model along y axis. */
   //private int imageSizeY;
   private String result;
+  //private byte[] result_bytes;
 
   public native String BCHDecode(byte[] data,byte[] ecc);
 
