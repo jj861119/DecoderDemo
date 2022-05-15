@@ -112,6 +112,8 @@ public abstract class CameraActivity extends AppCompatActivity
   private Device device = Device.CPU;
   private int numThreads = -1;
 
+  protected static Context context;
+
 //  void initPython(){
 //    if (! Python.isStarted()) {
 //      Python.start(new AndroidPlatform(this));
@@ -126,6 +128,7 @@ public abstract class CameraActivity extends AppCompatActivity
 
     setContentView(R.layout.tfe_ic_activity_camera);
 
+    context = getApplicationContext();
     if (hasPermission()) {
       setFragment();
     } else {

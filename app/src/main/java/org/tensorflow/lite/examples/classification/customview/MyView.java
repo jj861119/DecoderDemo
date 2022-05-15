@@ -82,21 +82,27 @@ public class MyView extends View {
 
         Paint paint = new Paint();
         paint.setColor(0xFFFF6600);
+        paint.setColor(0xF11F6600);
         paint.setStyle(Paint.Style.STROKE);
         Log.v("myView", "myView");
         Log.v("ratioWidth", String.valueOf(ratioWidth));
         Log.v("ratioHeight", String.valueOf(ratioHeight));
 
+        Log.v("this.getWidth()", String.valueOf(this.getWidth()));
+        Log.v("this.getHeight()", String.valueOf(this.getHeight()));
         if(ratioWidth!=0 && ratioHeight!=0)
         {
             int textureW, textureH;
             if (this.getWidth() < this.getHeight() * ratioWidth / ratioHeight) {
+                Log.v("tag1", "tag1");
                 textureW = this.getWidth();
                 textureH=this.getWidth() * ratioHeight / ratioWidth;
             } else {
                 textureW = this.getHeight() * ratioWidth / ratioHeight;
                 textureH=this.getHeight();
             }
+            Log.v("tag1textureW", String.valueOf(textureW));
+            Log.v("tag1textureH", String.valueOf(textureH));
 
 
             Float centreX=this.getX() + textureW  / 2;
@@ -110,13 +116,17 @@ public class MyView extends View {
 //            Log.v("textureratioHeight", String.valueOf(ratioHeight));
 //            Log.v("textureW", String.valueOf(textureW));
 //            Log.v("textureH", String.valueOf(textureH));
+            Log.v("cenX", String.valueOf(centreX));
+            Log.v("cenY", String.valueOf(centreY));
             Log.v("myView L", String.valueOf(centreX-boxWidth));
-            Log.v("myView T", String.valueOf(centreX-boxHeight));
+            Log.v("myView T", String.valueOf(centreY-boxHeight));
             Log.v("myView R", String.valueOf(centreX+boxWidth));
-            Log.v("myView B", String.valueOf(centreX+boxHeight));
+            Log.v("myView B", String.valueOf(centreY+boxHeight));
 
-            canvas.drawRect(centreX-boxWidth,centreY-boxHeight,centreX+boxWidth,centreY+boxHeight,paint);
+            canvas.drawRect(centreX-(int)(boxWidth*1.05),centreY-(int)(boxHeight*1.05),centreX+(int)(boxWidth*1.05),centreY+(int)(boxHeight*1.05),paint);
             canvas.drawCircle(centreX,centreY,2,paint);
+
+            //canvas.drawRect(0,0,textureW,textureH,paint);
         }
     }
 
@@ -126,6 +136,8 @@ public class MyView extends View {
         }
         ratioWidth = height;
         ratioHeight = width;
+
+
         requestLayout();
     }
 

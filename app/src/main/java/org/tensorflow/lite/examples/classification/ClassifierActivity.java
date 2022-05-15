@@ -16,6 +16,7 @@
 
 package org.tensorflow.lite.examples.classification;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Color;
@@ -27,10 +28,17 @@ import android.util.Log;
 import android.util.Size;
 import android.util.TypedValue;
 import android.widget.Toast;
+import android.os.Environment;
+import android.graphics.Bitmap;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 
 //import com.chaquo.python.Kwarg;
 //import com.chaquo.python.PyObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -49,7 +57,7 @@ import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
 public class ClassifierActivity extends CameraActivity implements OnImageAvailableListener {
   private static final Logger LOGGER = new Logger();
-  private static final Size DESIRED_PREVIEW_SIZE = new Size(1920, 1080);
+  private static final Size DESIRED_PREVIEW_SIZE = new Size(3840, 2160);
   private static final float TEXT_SIZE_DIP = 10;
   private Bitmap rgbFrameBitmap = null;
   private long lastProcessingTimeMs;
@@ -63,6 +71,7 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
   //private int imageSizeY;
   private String result;
   //private byte[] result_bytes;
+  private int count = 0;
 
   public native String BCHDecode(byte[] data,byte[] ecc);
 
@@ -128,14 +137,35 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
                   matrix.postRotate(90);
                   Bitmap rgbFrameBitmapRotated=Bitmap.createBitmap(rgbFrameBitmap,0,0,rgbFrameBitmap.getWidth(), rgbFrameBitmap.getHeight(),matrix,true);
 
+                  Log.v("getWidth: ", Integer.toString(rgbFrameBitmapRotated.getWidth()));
+                  Log.v("getHeight: ", Integer.toString(rgbFrameBitmapRotated.getHeight()));
+
                   int viewWidth = rgbFrameBitmapRotated.getWidth();
                   int viewHeight = rgbFrameBitmapRotated.getHeight();
                   int boxWidth = viewWidth / 4;
                   int boxHeight = boxWidth*3/2;
 
+                  Log.v("boxWidth: ", Integer.toString(boxWidth));
+                  Log.v("boxHeight: ", Integer.toString(boxHeight));
+
                   Bitmap resizedBmp = Bitmap.createBitmap(rgbFrameBitmapRotated,
                           viewWidth/2 - boxWidth, viewHeight/2 - boxHeight, boxWidth*2, boxHeight*2);
                   Bitmap bitmap = Bitmap.createScaledBitmap(resizedBmp, 320, 480, true);
+
+                  //saveBitmap("rgbFrameBitmapRotated.png",rgbFrameBitmapRotated,this);
+//                  try {
+//                    FileOutputStream fileOutputStream = context.openFileOutput("test.png", Context.MODE_PRIVATE);
+//                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
+//                    fileOutputStream.close();
+//                  } catch (Exception e) {
+//                    e.printStackTrace();
+//                  }
+
+                  //bitmapToFile(context,rgbFrameBitmapRotated,"rgbFrameBitmapRotated"+Integer.toString(count)+".png");
+                  //bitmapToFile(context,bitmap,"bitmap"+Integer.toString(count)+".png");
+                  //bitmapToFile(context,resizedBmp,"resizedBmp"+Integer.toString(count)+".png");
+                  //count++;
+
 
                   ByteBuffer input = ByteBuffer.allocateDirect(320 * 480 * 3 * 4).order(ByteOrder.nativeOrder());
                   for (int y = 0; y < 480; y++) {
@@ -314,4 +344,30 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
 //    imageSizeX = classifier.getImageSizeX();
 //    imageSizeY = classifier.getImageSizeY();
   }
+
+  public static File bitmapToFile(Context context,Bitmap bitmap, String fileNameToSave) { // File name like "image.png"
+    //create a file to write bitmap data
+    File file = null;
+    try {
+      file = new File(Environment.getExternalStorageDirectory() + File.separator + fileNameToSave);
+      Log.v("file",Environment.getExternalStorageDirectory().getPath());
+      file.createNewFile();
+
+//Convert bitmap to byte array
+      ByteArrayOutputStream bos = new ByteArrayOutputStream();
+      bitmap.compress(Bitmap.CompressFormat.PNG, 0 , bos); // YOU can also save it in JPEG
+      byte[] bitmapdata = bos.toByteArray();
+
+//write the bytes in file
+      FileOutputStream fos = new FileOutputStream(file);
+      fos.write(bitmapdata);
+      fos.flush();
+      fos.close();
+      return file;
+    }catch (Exception e){
+      e.printStackTrace();
+      return file; // it will return null
+    }
+  }
+
 }
