@@ -82,8 +82,8 @@ public class MyView extends View {
 
         Paint paint = new Paint();
         paint.setColor(0xFFFF6600);
-        paint.setColor(0xF11F6600);
         paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(3);
         Log.v("myView", "myView");
         Log.v("ratioWidth", String.valueOf(ratioWidth));
         Log.v("ratioHeight", String.valueOf(ratioHeight));
