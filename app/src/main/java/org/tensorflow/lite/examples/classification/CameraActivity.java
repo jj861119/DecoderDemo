@@ -110,7 +110,7 @@ public abstract class CameraActivity extends AppCompatActivity
 
   private Model model = Model.QUANTIZED_EFFICIENTNET;
   private Device device = Device.CPU;
-  private int numThreads = -1;
+  private int numThreads = 1;
 
   protected static Context context;
 

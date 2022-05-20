@@ -83,6 +83,7 @@ dependencies {
     implementation 'org.tensorflow:tensorflow-lite-support:0.3.0'
     implementation 'org.tensorflow:tensorflow-lite-metadata:0.3.0'
     implementation 'org.tensorflow:tensorflow-lite-gpu:2.3.0'
+    implementation 'org.tensorflow:tensorflow-lite:2.3.0'
     supportImplementation project(":lib_support")
     taskApiImplementation project(":lib_task_api")
     implementation 'androidx.appcompat:appcompat:1.0.0'

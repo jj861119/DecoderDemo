@@ -17,13 +17,16 @@
 package org.tensorflow.lite.examples.classification;
 
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Typeface;
 import android.media.ImageReader.OnImageAvailableListener;
 import android.os.SystemClock;
+import android.os.Trace;
 import android.util.Log;
 import android.util.Size;
 import android.util.TypedValue;
@@ -40,19 +43,34 @@ import java.io.FileOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.MappedByteBuffer;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.tensorflow.lite.DataType;
+import org.tensorflow.lite.Interpreter;
 import org.tensorflow.lite.examples.classification.env.BorderedText;
 import org.tensorflow.lite.examples.classification.env.Logger;
 import org.tensorflow.lite.examples.classification.tflite.Classifier;
 import org.tensorflow.lite.examples.classification.tflite.Classifier.Device;
 import org.tensorflow.lite.examples.classification.tflite.Classifier.Model;
+import org.tensorflow.lite.gpu.CompatibilityList;
+import org.tensorflow.lite.gpu.GpuDelegate;
+import org.tensorflow.lite.support.common.FileUtil;
+import org.tensorflow.lite.support.image.ColorSpaceType;
+import org.tensorflow.lite.support.image.ImageProcessor;
+import org.tensorflow.lite.support.image.ImageProperties;
 import org.tensorflow.lite.support.image.TensorImage;
+import org.tensorflow.lite.support.common.ops.QuantizeOp;
+import org.tensorflow.lite.support.image.ops.ResizeOp;
+import org.tensorflow.lite.support.image.ops.ResizeWithCropOrPadOp;
+import org.tensorflow.lite.support.image.ops.Rot90Op;
+import org.tensorflow.lite.support.label.TensorLabel;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
 public class ClassifierActivity extends CameraActivity implements OnImageAvailableListener {
@@ -64,14 +82,35 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
   private Integer sensorOrientation;
   //private Classifier classifier;
   private BorderedText borderedText;
-  private org.tensorflow.lite.examples.classification.ml.Model myModel;
+  //private org.tensorflow.lite.examples.classification.ml.Model myModel;
   /** Input image size of the model along x axis. */
   //private int imageSizeX;
   /** Input image size of the model along y axis. */
   //private int imageSizeY;
   private String result;
   //private byte[] result_bytes;
-  private int count = 0;
+  //private int count = 0;
+
+  private GpuDelegate gpuDelegate = null;
+  private final Interpreter.Options tfliteOptions = new Interpreter.Options();
+
+  /** The loaded TensorFlow Lite model. */
+  private MappedByteBuffer tfliteModel;
+
+  /** An instance of the driver class to run model inference with Tensorflow Lite. */
+  protected Interpreter model_gpu;
+
+  /** Image size along the x axis. */
+  //private int imageSizeX;
+
+  /** Image size along the y axis. */
+  //private int imageSizeY;
+
+  /** Input image TensorBuffer. */
+  private TensorImage inputImageBuffer;
+
+  /** Output probability TensorBuffer. */
+  private TensorBuffer outputSecretBuffer;
 
   public native String BCHDecode(byte[] data,byte[] ecc);
 
@@ -102,7 +141,7 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
 //      LOGGER.e("No classifier on preview!");
 //      return;
 //    }
-    if (myModel == null) {
+    if (model_gpu == null) {
       LOGGER.e("No myModel on preview!");
       return;
     }
@@ -120,13 +159,13 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
   @Override
   protected void processImage() {
     rgbFrameBitmap.setPixels(getRgbBytes(), 0, previewWidth, 0, 0, previewWidth, previewHeight);
-    final int cropSize = Math.min(previewWidth, previewHeight);
+    //final int cropSize = Math.min(previewWidth, previewHeight);
 
     runInBackground(
             new Runnable() {
               @Override
               public void run() {
-                if (myModel != null) {
+                if (model_gpu != null) {
                   //final long startTime = SystemClock.uptimeMillis();
                   //final List<Classifier.Recognition> results =
                           //classifier.recognizeImage(rgbFrameBitmap, sensorOrientation);
@@ -151,6 +190,13 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
                   Bitmap resizedBmp = Bitmap.createBitmap(rgbFrameBitmapRotated,
                           viewWidth/2 - boxWidth, viewHeight/2 - boxHeight, boxWidth*2, boxHeight*2);
                   Bitmap bitmap = Bitmap.createScaledBitmap(resizedBmp, 320, 480, true);
+//                  for(int i=0;i<480;i++) {
+//                      for (int j=0;j<320;j++) {
+//                          int c = bitmap.getPixel(i,j);
+//                          bitmap.setPixel(i, j, (Color.red(c)/255+Color.blue(c)/255+Color.green(c)/3));
+//                      }
+//                  }
+
 
                   //saveBitmap("rgbFrameBitmapRotated.png",rgbFrameBitmapRotated,this);
 //                  try {
@@ -166,6 +212,34 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
                   //bitmapToFile(context,resizedBmp,"resizedBmp"+Integer.toString(count)+".png");
                   //count++;
 
+
+
+
+                  //TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 480, 320, 3}, DataType.FLOAT32);
+
+                  //inputFeature0.loadBuffer(input);
+
+                  // Runs model inference and gets result.
+                  //org.tensorflow.lite.examples.classification.ml.Model.Outputs outputs = myModel.process(inputFeature0);
+
+                  //TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
+
+
+
+//                    AssetManager assetManager = getAssets();
+//
+//                    InputStream istr = null;
+//                    try {
+//                        istr = assetManager.open("1_hidden.png");
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                    Bitmap bitmap2 = BitmapFactory.decodeStream(istr);
+//                    try {
+//                        istr.close();
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
 
                   ByteBuffer input = ByteBuffer.allocateDirect(320 * 480 * 3 * 4).order(ByteOrder.nativeOrder());
                   for (int y = 0; y < 480; y++) {
@@ -188,23 +262,41 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
                     }
                   }
 
-                  //Log.v("input: ", input.toString());
-                  //TensorImage tensorImage = TensorImage.fromBitmap(rgbFrameBitmap);
-                  TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 480, 320, 3}, DataType.FLOAT32);
-                  //ByteBuffer input = tensorImage.getBuffer();
-                  //Log.v("input: ", Float.toString(input.getFloat()));
 
-                  inputFeature0.loadBuffer(input);
+                  //ImageProperties imgPro = new ImageProperties();
+                //inputImageBuffer.load(input,);
+//                ImageProcessor imageProcessor =
+//                        new ImageProcessor.Builder()
+//                                .add(new QuantizeOp(0,1/255.0f))
+//                                .build();
 
-                  // Runs model inference and gets result.
-                  final long startTime = SystemClock.uptimeMillis();
-                  org.tensorflow.lite.examples.classification.ml.Model.Outputs outputs = myModel.process(inputFeature0);
-                  lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
 
-                  TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
-                  float[] data=outputFeature0.getFloatArray();
-                  float[] testGT={0,1,0,0,1,0,0,0,0,1,1,0,0,1,0,1,0,1,1,0,1,1,0,0,0,1,1,0,1,1,0,0,0,1,1,0,1,1,1,1,0,0,1,0,0,0,0,
-                          0,0,0,1,0,0,0,0,0,1,1,0,0,0,1,0,1,0,0,0,1,0,0,0,0,1,1,1,1,1,0,1,1,1,1,1,0,0,0,1,0,1,1,1,0,0,0,0,0};
+                //inputImageBuffer = imageProcessor.process(inputImageBuffer);
+                final long startTime = SystemClock.uptimeMillis();
+                model_gpu.run(input, outputSecretBuffer.getBuffer().rewind());
+                lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
+
+//                  ImageProcessor imageProcessor2 =
+//                          new ImageProcessor.Builder()
+//                                  .add(new QuantizeOp(0,255.0f))
+//                                  .build();
+//
+//                  inputImageBuffer = imageProcessor2.process(inputImageBuffer);
+//                  Bitmap bitmap3 = inputImageBuffer.getBitmap();
+
+//                  for(int i=0;i<320;i++) {
+//                      for (int j=0;j<480;j++) {
+//                          int c = bitmap3.getPixel(i,j);
+//                          bitmap3.setPixel(i, j, (Color.red(c)*255+Color.blue(c)*255+Color.green(c)*255));
+//                      }
+//                  }
+                //float[] inputdata = inputImageBuffer.getBitmap()
+
+                float[] data=outputSecretBuffer.getFloatArray();
+                Log.i("Decode", Arrays.toString(data));
+                float[] testGT={0,1,0,0,1,0,0,0,0,1,1,0,0,1,0,1,0,1,1,0,1,1,0,0,0,1,1,0,1,1,0,0,0,1,1,0,1,1,1,1,0,0,1,0,0,0,0,
+                      0,0,0,1,0,0,0,0,0,1,1,0,0,0,1,0,1,0,0,0,1,0,0,0,0,1,1,1,1,1,0,1,1,1,1,1,0,0,0,1,0,1,1,1,0,0,0,0,0};
+                  Log.i("Decode", Arrays.toString(testGT));
                   //int[] data_int = new int[data.length];
                   byte[] data_byte= new byte[7];
                   byte[] ecc_byte= new byte[5];
@@ -272,7 +364,7 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
                               //showCropInfo(imageSizeX + "x" + imageSizeY);
                               //showCameraResolution(cropSize + "x" + cropSize);
                               //showRotationInfo(String.valueOf(sensorOrientation));
-                              showInference(lastProcessingTimeMs + "ms");
+                              showInference(String.format("%2f",1.0f/(lastProcessingTimeMs/1000.0f)));
                             }
                           });
                 }
@@ -299,10 +391,10 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
 //      classifier.close();
 //      classifier = null;
 //    }
-    if (myModel != null) {
+    if (model_gpu != null) {
       LOGGER.d("Closing myModel.");
-      myModel.close();
-      myModel = null;
+        model_gpu.close();
+        model_gpu = null;
     }
 
 //    if (device == Device.GPU
@@ -328,9 +420,71 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
 //    }
 
     try {
-      LOGGER.d(
-              "Creating myModel ");
-      myModel = org.tensorflow.lite.examples.classification.ml.Model.newInstance(this);
+      LOGGER.d("Creating myModel ");
+      tfliteModel = FileUtil.loadMappedFile(this, "model_static.tflite");
+
+      CompatibilityList compatList = new CompatibilityList();
+
+      //LOGGER.d(compatList.toString());
+      if(compatList.isDelegateSupportedOnThisDevice()){
+        // if the device has a supported GPU, add the GPU delegate
+        GpuDelegate.Options delegateOptions = compatList.getBestOptionsForThisDevice();
+        GpuDelegate gpuDelegate = new GpuDelegate(delegateOptions);
+        tfliteOptions.addDelegate(gpuDelegate);
+
+        LOGGER.d("Using GPU ");
+      } else
+        {
+        // if the GPU is not supported, run on 4 threads
+        tfliteOptions.setNumThreads(4);
+        LOGGER.d("Using CPU ");
+      }
+
+//      switch (device) {
+//        case GPU:
+//          gpuDelegate = new GpuDelegate();
+//          tfliteOptions.addDelegate(gpuDelegate);
+//          break;
+//        case CPU:
+//          break;
+//      }
+      LOGGER.d("Creating Interpreter ");
+      //tfliteOptions.setNumThreads(numThreads);
+      model_gpu = new Interpreter(tfliteModel, tfliteOptions);
+
+      LOGGER.d("Finish Create Interpreter ");
+
+      int imageTensorIndex = 0;
+      //int[] imageShape = model_gpu.getInputTensor(imageTensorIndex).shape(); // {1, height, width, 3}
+      //imageSizeY = imageShape[1];
+      //imageSizeX = imageShape[2];
+      DataType imageDataType = model_gpu.getInputTensor(imageTensorIndex).dataType();
+      //Log.v("datatype",imageDataType.toString());
+      int secretTensorIndex = 0;
+      int[] secretShape =
+              model_gpu.getOutputTensor(secretTensorIndex).shape(); // {1, 100}
+      //Log.v("datatype", Arrays.toString(secretShape));
+      DataType probabilityDataType = model_gpu.getOutputTensor(secretTensorIndex).dataType();
+      //Log.v("datatype",probabilityDataType.toString());
+
+      // Creates the input tensor.
+      inputImageBuffer = new TensorImage(imageDataType);
+
+      // Creates the output tensor and its processor.
+      outputSecretBuffer = TensorBuffer.createFixedSize(secretShape, probabilityDataType);
+
+//      inputImageBuffer.load(bitmap);
+//      model_gpu.run(inputImageBuffer.getBuffer(), outputSecretBuffer.getBuffer().rewind());
+//
+//      // Gets the map of label and probability.
+//      Map<String, Float> labeledProbability =
+//              new TensorLabel(labels, probabilityProcessor.process(outputSecretBuffer))
+//                      .getMapWithFloatValue();
+
+
+
+      LOGGER.d("Finish Create Model ");
+      //myModel = org.tensorflow.lite.examples.classification.ml.Model.newInstance(this);
     } catch (IOException | IllegalArgumentException e) {
       LOGGER.e(e, "Failed to create myModel.");
       runOnUiThread(
@@ -369,5 +523,6 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
       return file; // it will return null
     }
   }
+
 
 }
