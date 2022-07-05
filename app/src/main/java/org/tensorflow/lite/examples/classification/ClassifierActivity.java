@@ -251,7 +251,7 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
                       for (int s_length = 0 ; s_length < result.length(); s_length+=1)
                       {
                           int ascii = result.charAt(s_length);
-                        Log.i("JNI1", String.valueOf(ascii));
+                        //Log.i("JNI1", String.valueOf(ascii));
                         if(((ascii>=65&&ascii<=90)||(ascii>=97&&ascii<=122)||(ascii==32)))
                         {
                         }

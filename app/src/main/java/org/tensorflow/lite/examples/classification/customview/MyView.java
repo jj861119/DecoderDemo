@@ -25,6 +25,7 @@ public class MyView extends View {
     private float mTextHeight;
     private int ratioWidth;
     private int ratioHeight;
+    private Paint paint;
 
     public MyView(Context context) {
         super(context);
@@ -67,6 +68,11 @@ public class MyView extends View {
 
         // Update TextPaint and text measurements from attributes
         invalidateTextPaintAndMeasurements();
+
+        paint = new Paint();
+        paint.setColor(0xFFFF6600);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(6);
     }
 
     private void invalidateTextPaintAndMeasurements() {
@@ -76,14 +82,18 @@ public class MyView extends View {
         mTextHeight = fontMetrics.bottom;
     }
 
+
+    public void setPaint(int color)
+    {
+        paint.setColor(color);
+    }
+
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        Paint paint = new Paint();
-        paint.setColor(0xFFFF6600);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(3);
+
         Log.v("myView", "myView");
         Log.v("ratioWidth", String.valueOf(ratioWidth));
         Log.v("ratioHeight", String.valueOf(ratioHeight));
