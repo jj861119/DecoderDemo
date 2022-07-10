@@ -553,6 +553,15 @@ public abstract class CameraActivity extends AppCompatActivity
 //        if (recognition.getTitle() != null) recognitionTextView.setText(recognition.getTitle());
 //        if (recognition.getConfidence() != null)
           recognitionValueTextView.setText(result);
+          if(result=="Failed to decode")
+          {
+            myView.setPaint(0xFFFF6600);
+          }
+          else
+          {
+            myView.setPaint(0xFF00DD00);
+          }
+          myView.invalidate();
       //}
 
 //      Recognition recognition1 = results.get(1);

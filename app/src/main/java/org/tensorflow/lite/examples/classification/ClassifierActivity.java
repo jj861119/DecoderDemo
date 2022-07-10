@@ -339,13 +339,26 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
                   //Log.v("Decode", Integer.toString(data.length));
                   if(result.length()!=0)
                   {
-                    Log.i("JNI", result);
+                    for (int s_length = 0 ; s_length < result.length(); s_length+=1)
+                    {
+                      int ascii = result.charAt(s_length);
+                      //Log.i("JNI1", String.valueOf(ascii));
+                      if(((ascii>=65&&ascii<=90)||(ascii>=97&&ascii<=122)||(ascii==32)))
+                      {
+                      }
+                      else
+                      {
+                        result="Failed to decode";
+                        break;
+                      }
+                    }
+                    Log.i("JNI1", result);
                     //Log.i("JNI", String.valueOf(result.length()));
                   }
                   else
                   {
                     result="Failed to decode";
-                    Log.i("JNI", "Failed to decode");
+                    Log.i("JNI2", "Failed to decode");
                   }
                   //LOGGER.v("Decode: %f", data[0]);
 
