@@ -97,7 +97,7 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
     borderedText = new BorderedText(textSizePx);
     borderedText.setTypeface(Typeface.MONOSPACE);
 
-    recreateClassifier(getModel(), getDevice(), getNumThreads());
+    recreateClassifier();
 //    if (classifier == null) {
 //      LOGGER.e("No classifier on preview!");
 //      return;
@@ -301,13 +301,13 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
       // Defer creation until we're getting camera frames.
       return;
     }
-    final Device device = getDevice();
-    final Model model = getModel();
+    //final Device device = getDevice();
+    //final Model model = getModel();
     final int numThreads = getNumThreads();
-    runInBackground(() -> recreateClassifier(model, device, numThreads));
+    runInBackground(() -> recreateClassifier());
   }
 
-  private void recreateClassifier(Model model, Device device, int numThreads) {
+  private void recreateClassifier() {
 //    if (classifier != null) {
 //      LOGGER.d("Closing classifier.");
 //      classifier.close();

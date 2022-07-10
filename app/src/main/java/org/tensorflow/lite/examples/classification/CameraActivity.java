@@ -108,7 +108,7 @@ public abstract class CameraActivity extends AppCompatActivity
   private MyView myView;
   //protected Python py;
 
-  private Model model = Model.QUANTIZED_EFFICIENTNET;
+  //private Model model = Model.QUANTIZED_EFFICIENTNET;
   private Device device = Device.CPU;
   private int numThreads = -1;
 
@@ -602,17 +602,17 @@ public abstract class CameraActivity extends AppCompatActivity
     inferenceTimeTextView.setText(inferenceTime);
   }
 
-  protected Model getModel() {
-    return model;
-  }
-
-  private void setModel(Model model) {
-    if (this.model != model) {
-      LOGGER.d("Updating  model: " + model);
-      this.model = model;
-      onInferenceConfigurationChanged();
-    }
-  }
+//  protected Model getModel() {
+//    return model;
+//  }
+//
+//  private void setModel(Model model) {
+//    if (this.model != model) {
+//      LOGGER.d("Updating  model: " + model);
+//      this.model = model;
+//      onInferenceConfigurationChanged();
+//    }
+//  }
 
   protected Device getDevice() {
     return device;
