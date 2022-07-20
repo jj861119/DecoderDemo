@@ -93,6 +93,7 @@ public abstract class CameraActivity extends AppCompatActivity
           recognition1TextView,
           recognition2TextView,
           recognitionValueTextView,
+          decodeResultTextView,
           recognition1ValueTextView,
           recognition2ValueTextView;
   protected TextView frameValueTextView,
@@ -194,6 +195,7 @@ public abstract class CameraActivity extends AppCompatActivity
 
     recognitionTextView = findViewById(R.id.detected_item);
     recognitionValueTextView = findViewById(R.id.detected_item_value);
+    decodeResultTextView = findViewById(R.id.decode_result);
 //    recognition1TextView = findViewById(R.id.detected_item1);
 //    recognition1ValueTextView = findViewById(R.id.detected_item1_value);
 //    recognition2TextView = findViewById(R.id.detected_item2);
@@ -553,6 +555,7 @@ public abstract class CameraActivity extends AppCompatActivity
 //        if (recognition.getTitle() != null) recognitionTextView.setText(recognition.getTitle());
 //        if (recognition.getConfidence() != null)
           recognitionValueTextView.setText(result);
+          decodeResultTextView.setText(result);
           if(result=="Failed to decode")
           {
             myView.setPaint(0xFFFF6600);

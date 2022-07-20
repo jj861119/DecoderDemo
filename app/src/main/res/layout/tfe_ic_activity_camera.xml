@@ -33,9 +33,11 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@android:color/black"
-            tools:context="org.tensorflow.lite.examples.classification.CameraActivity" />
+            android:visibility="visible"
+            tools:context="org.tensorflow.lite.examples.classification.CameraActivity"
+            tools:visibility="visible">
 
-
+        </FrameLayout>
     </RelativeLayout>
 
     <include
@@ -46,5 +48,17 @@
         android:id="@+id/myView2"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
+    <TextView
+        android:id="@+id/decode_result"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Failed to decode"
+        android:textColor="#0022FF"
+        android:textSize="24sp"
+        android:translationX="240px"
+        android:translationY="350px"
+        android:visibility="visible"
+        tools:visibility="visible" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
