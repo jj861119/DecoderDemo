@@ -30,6 +30,13 @@ import android.os.Trace;
 import android.util.Log;
 import android.util.Size;
 import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.PopupWindow;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.os.Environment;
 import android.graphics.Bitmap;
@@ -72,6 +79,7 @@ import org.tensorflow.lite.support.image.ops.ResizeWithCropOrPadOp;
 import org.tensorflow.lite.support.image.ops.Rot90Op;
 import org.tensorflow.lite.support.label.TensorLabel;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
+import org.w3c.dom.Text;
 
 public class ClassifierActivity extends CameraActivity implements OnImageAvailableListener {
   private static final Logger LOGGER = new Logger();
@@ -90,6 +98,9 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
   private String result;
   //private byte[] result_bytes;
   //private int count = 0;
+  private PopupWindow popupWindow;
+  private Button btnConfirm, btnShow;
+
 
   private GpuDelegate gpuDelegate = null;
   private final Interpreter.Options tfliteOptions = new Interpreter.Options();
@@ -154,6 +165,7 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
 
     LOGGER.i("Initializing at size %dx%d", previewWidth, previewHeight);
     rgbFrameBitmap = Bitmap.createBitmap(previewWidth, previewHeight, Config.ARGB_8888);
+    initPopupWindow();
   }
 
   @Override
@@ -345,6 +357,8 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
                       //Log.i("JNI1", String.valueOf(ascii));
                       if(((ascii>=65&&ascii<=90)||(ascii>=97&&ascii<=122)||(ascii==32)))
                       {
+                        popupWindow.showAtLocation(myView, Gravity.CENTER_HORIZONTAL, 0, 0);
+                        ((TextView)popupWindow.getContentView().findViewById(R.id.popup_text)).setText(result);
                       }
                       else
                       {
@@ -360,6 +374,7 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
                     result="Failed to decode";
                     Log.i("JNI2", "Failed to decode");
                   }
+
                   //LOGGER.v("Decode: %f", data[0]);
 
                   // Call Python Bch Decode
@@ -537,5 +552,29 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
     }
   }
 
+  private void initPopupWindow() {
+    View view = LayoutInflater.from(context).inflate(R.layout.popupwindow_layout, null);
+    popupWindow = new PopupWindow(view);
+    popupWindow.setWidth(ViewGroup.LayoutParams.WRAP_CONTENT);
+    popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+    btnConfirm = (Button) view.findViewById(R.id.btnConform);
+    btnConfirm.setOnClickListener(listener); }
+
+  public View.OnClickListener listener = new View.OnClickListener() {
+    @Override
+    public void onClick(View view) {
+
+      switch (view.getId()) {
+
+//        case R.id.btnShow:
+//          popupWindow.showAtLocation(view, Gravity.CENTER_HORIZONTAL, 0, 0);
+//          break;
+
+        case R.id.btnConform:
+          popupWindow.dismiss();
+          break;
+      }
+    }
+  };
 
 }

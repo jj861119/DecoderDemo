@@ -38,6 +38,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.util.Log;
 import android.util.Size;
+import android.view.Gravity;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -106,7 +107,8 @@ public abstract class CameraActivity extends AppCompatActivity
   private Spinner modelSpinner;
   private Spinner deviceSpinner;
   private TextView threadsTextView;
-  private MyView myView;
+  protected MyView myView;
+  protected TextView popup_text;
   //protected Python py;
 
   //private Model model = Model.QUANTIZED_EFFICIENTNET;
